@@ -108,14 +108,9 @@ class EtcdDirectory(EtcdNode):
 class EtcdClient(object):
     API_VERSION = 'v2'
 
-    def __init__(self, seeds=[('localhost', 4001)]):
-        self.nodes = set(seeds)
+    def __init__(self, node=('localhost', 4001)):
+        self.node = node
         self.http_client = Agent(reactor, contextFactory=context)
-
-    def _get_node(self, prefer_leader=False):
-        # TODO: discover the rest of the cluster
-        # TODO: cache the leader
-        return random.sample(self.nodes, 1)[0]
 
     def _decode_response(self, response):
         def decode(text):
@@ -141,7 +136,7 @@ class EtcdClient(object):
             return value
 
     def _request(self, method, path, params=None, data=None, prefer_leader=False):
-        node = self._get_node(prefer_leader=prefer_leader)
+        node = self.node
         url = 'http://{host}:{port}/{version}{path}'.format(
             host=node[0],
             port=node[1],
