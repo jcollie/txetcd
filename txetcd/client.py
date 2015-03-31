@@ -94,8 +94,8 @@ class EtcdDirectory(EtcdNode):
 
     def __init__(self, **kwargs):
         super(EtcdDirectory, self).__init__(**kwargs)
-        if 'kvs' in kwargs:
-            self.children = [EtcdNode.from_response(**obj) for obj in kwargs['kvs']]
+        if 'nodes' in kwargs:
+            self.children = [EtcdNode.from_response(**obj) for obj in kwargs['nodes']]
         else:
             self.children = None
 
