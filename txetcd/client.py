@@ -126,9 +126,6 @@ class EtcdClient(object):
 
         return EtcdResponse(obj['index'], EtcdNode.from_response(**obj))
 
-    def _log_failure(self, failure):
-        log.err(failure)
-        return failure
 
     def _format_kwarg(self, key, value):
         if isinstance(value, bool):
