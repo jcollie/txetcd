@@ -21,7 +21,6 @@ setup(
     version='0.1-dev',
     packages=find_packages(),
     install_requires=[
-        'treq >= 0.2',
         'python-dateutil >= 2.1',
     ],
     author='Russell Haering',

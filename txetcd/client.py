@@ -19,9 +19,31 @@ from urllib import urlencode
 
 from dateutil.parser import parse as parse_datetime
 from twisted.python import log
+from twisted.web.client import Agent, readBody
+from twisted.web.http_headers import Headers
+import json
 
-from treq import json_content
-from treq.client import HTTPClient
+from zope.interface import implements, implementer
+from twisted.internet import defer, reactor
+from twisted.web.iweb import IBodyProducer
+
+
+class StringProducer(object):
+    implements(IBodyProducer)
+
+    def __init__(self, body):
+        self.body = body
+        self.length = len(body)
+
+    def startProducing(self, consumer):
+        consumer.write(self.body)
+        return defer.succeed(True)
+
+    def pauseProducing(self):
+        pass
+
+    def stopProducing(self):
+        pass
 
 
 class EtcdError(Exception):
@@ -83,7 +105,7 @@ class EtcdClient(object):
 
     def __init__(self, seeds=[('localhost', 4001)]):
         self.nodes = set(seeds)
-        self.http_client = HTTPClient.with_config()
+        self.http_client = Agent(reactor, contextFactory=context)
 
     def _get_node(self, prefer_leader=False):
         # TODO: discover the rest of the cluster
@@ -91,7 +113,12 @@ class EtcdClient(object):
         return random.sample(self.nodes, 1)[0]
 
     def _decode_response(self, response):
-        return json_content(response).addCallback(self._construct_response_object)
+        def decode(text):
+            return json.loads(text)
+        d = readBody(response)
+        d.addCallback(decode)
+        d.addCallback(self._construct_response_object)
+        return d
 
     def _construct_response_object(self, obj):
         if 'errorCode' in obj:
@@ -120,18 +147,18 @@ class EtcdClient(object):
             version=self.API_VERSION,
             path=path,
         )
-        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        kwargs = {}
 
-        if data:
-            kwargs['data'] = urlencode(data)
+        headers = None
+        bodyProducer = None
 
         if params:
-            kwargs['params'] = params
+            url = '{}?{}'.format(url, urlencode(params))
 
-        d = self.http_client.request(method, url, headers=headers, **kwargs)
-        d.addErrback(self._log_failure)
-        return d
+        if data:
+            headers = Headers({'Content-Type': 'application/x-www-form-urlencoded'})
+            bodyProducer = StringProducer(urlencode(data))
+
+        return self.http_client.request(method, url, headers=headers, bodyProducer=bodyProducer)
 
     def _validate_key(self, key):
         if not key.startswith('/'):
