@@ -59,9 +59,10 @@ class EtcdServerError(EtcdError):
 
 
 class EtcdResponse(object):
-    def __init__(self, index, node):
-        self.index = index
+    def __init__(self, action, node, index):
+        self.action = action
         self.node = node
+        self.index = index
 
 
 class EtcdNode(object):
@@ -87,6 +88,8 @@ class EtcdFile(EtcdNode):
     def __init__(self, **kwargs):
         super(EtcdFile, self).__init__(**kwargs)
         self.value = kwargs.get('value')
+        self.modifiedIndex = int(kwargs.get('modifiedIndex'))
+        self.createdIndex = int(kwargs.get('createdIndex'))
 
 
 class EtcdDirectory(EtcdNode):
@@ -94,6 +97,8 @@ class EtcdDirectory(EtcdNode):
 
     def __init__(self, **kwargs):
         super(EtcdDirectory, self).__init__(**kwargs)
+        self.modifiedIndex = int(kwargs.get('modifiedIndex'))
+        self.createdIndex = int(kwargs.get('createdIndex'))
         if 'nodes' in kwargs:
             self.children = [EtcdNode.from_response(**obj) for obj in kwargs['nodes']]
         else:
@@ -117,15 +122,14 @@ class EtcdClient(object):
             return json.loads(text)
         d = readBody(response)
         d.addCallback(decode)
-        d.addCallback(self._construct_response_object)
+        d.addCallback(self._construct_response_object, response.headers)
         return d
 
-    def _construct_response_object(self, obj):
+    def _construct_response_object(self, obj, headers):
         if 'errorCode' in obj:
-            raise EtcdServerError(obj)
-
-        return EtcdResponse(obj['index'], EtcdNode.from_response(**obj))
-
+            raise EtcdServerError(**obj)
+        index = int(headers.getRawHeaders('X-Etcd-Index', 0)[0])
+        return EtcdResponse(obj['action'], EtcdNode.from_response(**obj['node']), index)
 
     def _format_kwarg(self, key, value):
         if isinstance(value, bool):
