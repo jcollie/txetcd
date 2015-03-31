@@ -19,13 +19,14 @@ from urllib import urlencode
 
 from dateutil.parser import parse as parse_datetime
 from twisted.python import log
-from twisted.web.client import Agent, readBody
+from twisted.web.client import Agent, readBody, _requireSSL
 from twisted.web.http_headers import Headers
 import json
 
 from zope.interface import implements, implementer
 from twisted.internet import defer, reactor
-from twisted.web.iweb import IBodyProducer
+from twisted.web.iweb import IBodyProducer, IPolicyForHTTPS
+from twisted.internet.ssl import optionsForClientTLS
 
 
 class StringProducer(object):
@@ -105,11 +106,29 @@ class EtcdDirectory(EtcdNode):
             self.children = None
 
 
+@implementer(IPolicyForHTTPS)
+class PolicyForHTTPS(object):
+    def __init__(self, ca, cert):
+        self._ca = ca
+        self._cert = cert
+
+    @_requireSSL
+    def creatorForNetloc(self, hostname, port):
+        return optionsForClientTLS(hostname.decode("ascii"),
+                trustRoot = self._ca, clientCertificate = self._cert)
+
 class EtcdClient(object):
     API_VERSION = 'v2'
 
-    def __init__(self, node=('localhost', 4001)):
+    def __init__(self, node=('localhost', 4001), ca=None, cert=None):
         self.node = node
+        self.scheme = 'http'
+        self.ca = ca
+        self.cert = cert
+        context = None
+        if ca:
+            self.scheme = 'https'
+            context = PolicyForHTTPS(ca, cert)
         self.http_client = Agent(reactor, contextFactory=context)
 
     def _decode_response(self, response):
@@ -137,7 +156,8 @@ class EtcdClient(object):
 
     def _request(self, method, path, params=None, data=None, prefer_leader=False):
         node = self.node
-        url = 'http://{host}:{port}/{version}{path}'.format(
+        url = '{scheme}://{host}:{port}/{version}{path}'.format(
+            scheme=self.scheme,
             host=node[0],
             port=node[1],
             version=self.API_VERSION,
