@@ -171,7 +171,7 @@ class EtcdClient(object):
             url = '{}?{}'.format(url, urlencode(params))
 
         if data:
-            headers = Headers({'Content-Type': 'application/x-www-form-urlencoded'})
+            headers = Headers({'Content-Type': ['application/x-www-form-urlencoded']})
             bodyProducer = StringProducer(urlencode(data))
 
         return self.http_client.request(method, url, headers=headers, bodyProducer=bodyProducer)
