@@ -27,6 +27,8 @@ from zope.interface import implements, implementer
 from twisted.internet import defer
 from twisted.web.iweb import IBodyProducer, IPolicyForHTTPS
 from twisted.internet.ssl import optionsForClientTLS
+from twisted.web.client import _HTTP11ClientFactory
+from twisted.web.client import HTTPConnectionPool
 
 
 class StringProducer(object):
@@ -117,6 +119,9 @@ class PolicyForHTTPS(object):
         return optionsForClientTLS(hostname.decode("ascii"),
                 trustRoot = self._ca, clientCertificate = self._cert)
 
+class QuietHTTP11ClientFactory(_HTTP11ClientFactory):
+    noisy = False
+
 class EtcdClient(object):
     API_VERSION = 'v2'
 
@@ -130,7 +135,12 @@ class EtcdClient(object):
         if ca:
             self.scheme = 'https'
             context = PolicyForHTTPS(ca, cert)
-        self.http_client = Agent(self.reactor, contextFactory=context)
+
+        quietPool = HTTPConnectionPool(reactor, persistent = True)
+        quietPool.maxPersistentPerHost = 2
+        quietPool._factory = QuietHTTP11ClientFactory
+
+        self.agent = Agent(self.reactor, contextFactory=context, pool=quietPool)
 
     def _decode_response(self, response):
         def decode(text):
@@ -175,7 +185,7 @@ class EtcdClient(object):
             headers = Headers({'Content-Type': ['application/x-www-form-urlencoded']})
             bodyProducer = StringProducer(urlencode(data))
 
-        return self.http_client.request(method, url, headers=headers, bodyProducer=bodyProducer)
+        return self.agent.request(method, url, headers=headers, bodyProducer=bodyProducer)
 
     def _validate_key(self, key):
         if not key.startswith('/'):
