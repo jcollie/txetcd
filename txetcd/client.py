@@ -24,7 +24,7 @@ from twisted.web.http_headers import Headers
 import json
 
 from zope.interface import implements, implementer
-from twisted.internet import defer, reactor
+from twisted.internet import defer
 from twisted.web.iweb import IBodyProducer, IPolicyForHTTPS
 from twisted.internet.ssl import optionsForClientTLS
 
@@ -120,7 +120,8 @@ class PolicyForHTTPS(object):
 class EtcdClient(object):
     API_VERSION = 'v2'
 
-    def __init__(self, node=('localhost', 4001), ca=None, cert=None):
+    def __init__(self, reactor, node=('localhost', 4001), ca=None, cert=None):
+        self.reactor = reactor
         self.node = node
         self.scheme = 'http'
         self.ca = ca
@@ -129,7 +130,7 @@ class EtcdClient(object):
         if ca:
             self.scheme = 'https'
             context = PolicyForHTTPS(ca, cert)
-        self.http_client = Agent(reactor, contextFactory=context)
+        self.http_client = Agent(self.reactor, contextFactory=context)
 
     def _decode_response(self, response):
         def decode(text):
