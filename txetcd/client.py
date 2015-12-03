@@ -23,7 +23,7 @@ from twisted.web.client import Agent, readBody, _requireSSL
 from twisted.web.http_headers import Headers
 import json
 
-from zope.interface import implements, implementer
+from zope.interface import implementer
 from twisted.internet import defer
 from twisted.web.iweb import IBodyProducer, IPolicyForHTTPS
 from twisted.internet.ssl import optionsForClientTLS
