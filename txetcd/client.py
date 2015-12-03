@@ -191,7 +191,7 @@ class EtcdClient(object):
             raise RuntimeError('keys must start with /')
 
     def _build_params(self, params, method_kwargs, param_map):
-        for key in param_map.iterkeys():
+        for key in param_map.keys():
             if key in method_kwargs:
                 params[param_map[key]] = self._format_kwarg(key, method_kwargs[key])
 
