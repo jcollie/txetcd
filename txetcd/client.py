@@ -23,6 +23,7 @@ from zope.interface import implementer
 from twisted.internet import defer
 from twisted.internet.ssl import optionsForClientTLS
 from twisted.logger import Logger
+from twisted.python.url import URL
 from twisted.web.client import Agent, readBody, _requireSSL
 from twisted.web.client import HTTPConnectionPool
 from twisted.web.client import _HTTP11ClientFactory
