@@ -30,9 +30,8 @@ from twisted.internet.ssl import optionsForClientTLS
 from twisted.web.client import _HTTP11ClientFactory
 from twisted.web.client import HTTPConnectionPool
 
-
+@implementer(IBodyProducer)
 class StringProducer(object):
-    implements(IBodyProducer)
 
     def __init__(self, body):
         self.body = body
