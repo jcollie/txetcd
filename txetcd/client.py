@@ -190,7 +190,7 @@ class EtcdClient(object):
 
     def _build_path(self, key):
         path = [self.API_VERSION, 'keys']
-        path.extend(self.parse_key(key))
+        path.extend(self._parse_key(key))
         
     def _build_query(self, params, method_kwargs, param_map):
         for key in param_map.keys():
