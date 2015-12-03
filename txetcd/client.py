@@ -185,7 +185,7 @@ class EtcdClient(object):
 
         url = bytes(url.encode('utf-8'))
 
-        return self.agent.request(bytes(method), url, headers, body)
+        return self.agent.request(method, url, headers, body)
 
     def _validate_key(self, key):
         if not key.startswith('/'):
@@ -204,7 +204,7 @@ class EtcdClient(object):
         data = self._build_params({'value': value}, kwargs, {
             'ttl': 'ttl',
         })
-        d = self._request('POST', path, data=data, prefer_leader=True)
+        d = self._request(b'POST', path, data=data, prefer_leader=True)
         d.addCallback(self._decode_response)
         return d
 
@@ -219,14 +219,14 @@ class EtcdClient(object):
             'prev_exist': 'prevExist',
         })
 
-        d = self._request('PUT', path, data=data, prefer_leader=True)
+        d = self._request(b'PUT', path, data=data, prefer_leader=True)
         d.addCallback(self._decode_response)
         return d
 
     def delete(self, key):
         self._validate_key(key)
         path = '/keys{key}'.format(key=key)
-        d = self._request('DELETE', path, prefer_leader=True)
+        d = self._request(b'DELETE', path, prefer_leader=True)
         d.addCallback(self._decode_response)
         return d
 
@@ -241,6 +241,6 @@ class EtcdClient(object):
             'wait_index': 'waitIndex',
         })
 
-        d = self._request('GET', path, params=params)
+        d = self._request(b'GET', path, params=params)
         d.addCallback(self._decode_response)
         return d
