@@ -186,7 +186,7 @@ class EtcdClient(object):
 
         url = url.encode('utf-8')
 
-        return self.agent.request(method, url, headers, body)
+        return self.agent.request(bytes(method), url, headers, body)
 
     def _validate_key(self, key):
         if not key.startswith('/'):
