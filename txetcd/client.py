@@ -163,7 +163,7 @@ class EtcdClient(object):
         else:
             return value
 
-    def _request(self, method, path, query = (,), data = None, prefer_leader = False):
+    def _request(self, method, path, query = (), data = None, prefer_leader = False):
         url = URL(scheme = self.scheme,
                   host = self.node[0],
                   port = self.node[1],
