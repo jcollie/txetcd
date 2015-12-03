@@ -175,18 +175,18 @@ class EtcdClient(object):
         )
 
         headers = None
-        bodyProducer = None
+        body = None
 
-        if params:
-            url = '{}?{}'.format(url, urlencode(params))
+        #if params:
+        #    url = '{}?{}'.format(url, urlencode(params))
 
-        if data:
-            headers = Headers({'Content-Type': ['application/x-www-form-urlencoded']})
-            bodyProducer = StringProducer(urlencode(data))
+        #if data:
+        #    headers = Headers({b'Content-Type': [b'application/x-www-form-urlencoded']})
+        #    body = StringProducer(urlencode(data))
 
         url = url.encode('utf-8')
 
-        return self.agent.request(method, url, headers=headers, bodyProducer=bodyProducer)
+        return self.agent.request(method, url, headers, body)
 
     def _validate_key(self, key):
         if not key.startswith('/'):
