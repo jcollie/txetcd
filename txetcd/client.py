@@ -137,7 +137,7 @@ class EtcdClient(object):
         quietPool.maxPersistentPerHost = 2
         quietPool._factory = QuietHTTP11ClientFactory
 
-        self.agent = Agent(self.reactor, contextFactory =c ontext, pool = quietPool)
+        self.agent = Agent(self.reactor, contextFactory = context, pool = quietPool)
 
     def _decode_response(self, response):
         def decode(text):
