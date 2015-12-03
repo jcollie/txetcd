@@ -137,7 +137,7 @@ class EtcdClient(object):
 
         quietPool = HTTPConnectionPool(reactor, persistent = True)
         quietPool.maxPersistentPerHost = 2
-        quietPool._factory = QuietHTTP11ClientFactory
+        #quietPool._factory = QuietHTTP11ClientFactory
 
         self.agent = Agent(self.reactor, contextFactory=context, pool=quietPool)
 
