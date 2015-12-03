@@ -143,7 +143,7 @@ class EtcdClient(object):
 
     def _decode_response(self, response):
         def decode(text):
-            return json.loads(text)
+            return json.loads(text.decode('utf-8'))
         d = readBody(response)
         d.addCallback(decode)
         d.addCallback(self._construct_response_object, response.headers)
