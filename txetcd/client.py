@@ -184,6 +184,8 @@ class EtcdClient(object):
             headers = Headers({'Content-Type': ['application/x-www-form-urlencoded']})
             bodyProducer = StringProducer(urlencode(data))
 
+        url = url.encode('utf-8')
+
         return self.agent.request(method, url, headers=headers, bodyProducer=bodyProducer)
 
     def _validate_key(self, key):
