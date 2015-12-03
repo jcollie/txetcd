@@ -165,11 +165,10 @@ class EtcdClient(object):
             return value
 
     def _request(self, method, path, params=None, data=None, prefer_leader=False):
-        node = self.node
         url = '{scheme}://{host}:{port}/{version}{path}'.format(
             scheme=self.scheme,
-            host=node[0],
-            port=node[1],
+            host=self.node[0],
+            port=self.node[1],
             version=self.API_VERSION,
             path=path,
         )
@@ -184,7 +183,7 @@ class EtcdClient(object):
         #    headers = Headers({b'Content-Type': [b'application/x-www-form-urlencoded']})
         #    body = StringProducer(urlencode(data))
 
-        url = url.encode('utf-8')
+        url = bytes(url.encode('utf-8'))
 
         return self.agent.request(bytes(method), url, headers, body)
 
