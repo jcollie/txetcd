@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import random
-from urllib import urlencode
+from urllib.parse import urlencode
 
 from dateutil.parser import parse as parse_datetime
 from twisted.python import log
