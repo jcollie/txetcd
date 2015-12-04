@@ -170,7 +170,7 @@ class EtcdClient(object):
                   path = path,
                   query = query)
 
-        self.log.debug('Sending {m:} request to {u:}', m = method.decode('iso-8859-1'), u = url.asText())
+        #self.log.debug('Sending {m:} request to {u:}', m = method.decode('iso-8859-1'), u = url.asText())
         
         headers = None
         body = None
@@ -179,7 +179,7 @@ class EtcdClient(object):
             headers = Headers({b'Content-Type': [b'application/x-www-form-urlencoded; charset=utf-8']})
             body = StringProducer(data)
 
-        return self.agent.request(method, url, headers, body)
+        return self.agent.request(method, url.asText().encode('iso-8859-1'), headers, body)
 
     def _validate_key(self, key):
         if not key.startswith('/'):
@@ -192,7 +192,8 @@ class EtcdClient(object):
     def _build_path(self, key):
         path = [self.API_VERSION, 'keys']
         path.extend(self._parse_key(key))
-        
+        return path
+    
     def _build_query(self, params, method_kwargs, param_map):
         for key in param_map.keys():
             if key in method_kwargs:
@@ -220,16 +221,15 @@ class EtcdClient(object):
 
     def set(self, key, **kwargs):
         path = self._build_path(key)
-        data = self._build_params({},
-                                  kwargs,
-                                  {
-                                      'ttl': 'ttl',
-                                      'value': 'value',
-                                      'prev_index': 'prevIndex',
-                                      'prev_value': 'prevValue',
-                                      'prev_exist': 'prevExist',
-                                  })
-
+        data = self._build_data({},
+                                kwargs,
+                                {
+                                    'ttl': 'ttl',
+                                    'value': 'value',
+                                    'prev_index': 'prevIndex',
+                                    'prev_value': 'prevValue',
+                                    'prev_exist': 'prevExist',
+                                })
         d = self._request(b'PUT', path, data = data, prefer_leader = True)
         d.addCallback(self._decode_response)
         return d
